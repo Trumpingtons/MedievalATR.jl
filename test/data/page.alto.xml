@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns="http://www.loc.gov/standards/alto/ns-v4#">
+  <Description><MeasurementUnit>pixel</MeasurementUnit><sourceImageInformation><fileName>page.png</fileName></sourceImageInformation></Description>
+  <Layout><Page WIDTH="420" HEIGHT="130" PHYSICAL_IMG_NR="1" ID="p1"><PrintSpace HPOS="0" VPOS="0" WIDTH="420" HEIGHT="130">
+    <TextBlock ID="r1">
+      <TextLine ID="l1" BASELINE="10 42 300 44">
+        <Shape><Polygon POINTS="8,12 302,14 302,14 302,54 8,52"/></Shape>
+        <String CONTENT="In"/><SP/><String CONTENT="principio"/><SP/><String CONTENT="erat"/>
+      </TextLine>
+      <TextLine ID="l2" BASELINE="(10.9, 98) (120, 102.5) (230, 106) (300, 109)">
+        <Shape><Polygon POINTS="8 72 150 74 302 80 302 120 150 116 8 110"/></Shape>
+        <String CONTENT="verbum"/><SP/><String/><String CONTENT="deus"/>
+      </TextLine>
+      <TextLine ID="l3"><String CONTENT="no baseline"/></TextLine>
+      <TextLine ID="l4" BASELINE="1 2 3 4"><String CONTENT="no polygon"/></TextLine>
+    </TextBlock>
+  </PrintSpace></Page></Layout>
+</alto>

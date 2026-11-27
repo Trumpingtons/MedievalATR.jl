@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15">
+  <Page imageFilename="page.png" imageWidth="420" imageHeight="130">
+    <TextRegion id="r1"><Coords points="0,0 420,0 420,130 0,130"/>
+      <TextLine id="l1"><Coords points="8,12 302,14 302,54 8,52"/><Baseline points="10,42 300,44 300,44"/>
+        <TextEquiv><Unicode>In principio erat</Unicode></TextEquiv></TextLine>
+      <TextLine id="l2"><Coords points="8,72 150,74 302,80 302,120 150,116 8,110"/><Baseline points="10,98 120,102 230,106 300,109"/>
+        <Word id="w1"><TextEquiv><Unicode>verbum</Unicode></TextEquiv></Word><Word id="w2"><TextEquiv><Unicode>deus</Unicode></TextEquiv></Word></TextLine>
+      <TextLine id="l3"><Coords points="1,2 3,4 5,6"/><TextEquiv><Unicode>no baseline</Unicode></TextEquiv></TextLine>
+    </TextRegion>
+    <ImageRegion id="r2"><Coords points="0,0 1,1 2,2"/></ImageRegion>
+  </Page>
+</PcGts>
