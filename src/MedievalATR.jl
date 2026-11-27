@@ -7,6 +7,7 @@ read from the files Kraken saves and computed as Kraken computes them.
 module MedievalATR
 
 import ColorTypes
+import Dates
 import Downloads
 import EzXML
 import FileIO
@@ -21,7 +22,7 @@ import SHA
 
 export Recognizer, Character, load_model, probabilities, decode, transcription, cut_line, prepare_line
 export TextLine, Page, Prediction, read_page, read_image, recognize, write_predictions, model_path
-export Segmenter, load_segmenter, Segmentation, Region, segment, write_alto
+export Segmenter, load_segmenter, Segmentation, Region, segment, write_alto, write_page_xml
 
 include("protobuf.jl")
 include("network.jl")

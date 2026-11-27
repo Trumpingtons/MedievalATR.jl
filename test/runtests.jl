@@ -1,8 +1,8 @@
 # MedievalATR's tests, against values computed by Pillow 13 and Kraken 7.2 with CATMuS Medieval and blla (test/data,
 # made by fixtures.py from the Kraken reference): polygon masks, Lanczos scaling, ALTO and PAGE reading, the lines of a
 # small drawn page as Kraken cuts, prepares and reads them, blla's network on that page, and the lines and regions
-# Kraken finds on drawn maps, which stand in for the network's, with their ALTO. The models are downloaded the first
-# time, CATMuS Medieval from Zenodo and blla from Kraken's repository.
+# Kraken finds on drawn maps, which stand in for the network's, with their ALTO and PAGE files. The models are
+# downloaded the first time, CATMuS Medieval from Zenodo and blla from Kraken's repository.
 using MedievalATR, Test, JSON
 
 const DATA = joinpath(@__DIR__, "data")
@@ -77,7 +77,7 @@ end
 		@test maximum(abs.(got .- expected)) < 0.01
 	end
 
-	@testset "lines and regions on drawn maps, and their ALTO, as Kraken finds and writes them" begin
+	@testset "lines and regions on drawn maps, and their ALTO and PAGE files, as Kraken finds and writes them" begin
 		model = load_segmenter(:blla)
 		case = FIXTURES["segment"]
 		stacked = read_image(joinpath(DATA, case["maps"]))[1, :, :]
@@ -88,16 +88,16 @@ end
 		@test ([(l.baseline, l.boundary) for l in s.lines], s.kinds, [r .- 1 for r in s.line_regions], [(r.kind, r.boundary) for r in s.regions]) ==
 			([(points(l["baseline"]), points(l["boundary"])) for l in case["lines"]], [l["kind"] for l in case["lines"]],
 				[Vector{Int}(l["regions"]) for l in case["lines"]], [(r["kind"], points(r["boundary"])) for r in case["regions"]])
-		# the layout from the tags on (Kraken's description names Kraken), one element to a line, as Kraken's template
-		# closes a TextBlock on the line of its Shape
-		layout(file) = filter(!isempty, strip.(split(replace(split(read(file, String), "</Description>")[2],
-			"</Shape></TextBlock>" => "</Shape>\n</TextBlock>"), '\n')))
+		# the layout after the description of the file (which names Kraken in Kraken's), one tag to a line
+		layout(file, from) = split(replace(strip(split(read(file, String), from)[2]), r">\s*<" => ">\n<"), '\n')
+		# Kraken's reader, like read_page, drops a point that repeats the one before it
+		lines = [(l.id, l.baseline, MedievalATR.adjacent_unique(l.boundary)) for l in s.lines]
 		mktempdir() do dir
-			path = write_alto(joinpath(dir, "page.xml"), s)
-			@test layout(path) == layout(joinpath(DATA, case["alto"]))
-			# Kraken's reader, like read_page, drops a point that repeats the one before it
-			@test [(l.id, l.baseline, l.boundary) for l in read_page(path).lines] ==
-				[(l.id, l.baseline, MedievalATR.adjacent_unique(l.boundary)) for l in s.lines]
+			alto = write_alto(joinpath(dir, "page.alto.xml"), s)
+			pagexml = write_page_xml(joinpath(dir, "page.page.xml"), s)
+			@test (layout(alto, "</Description>"), layout(pagexml, "</Metadata>")) ==
+				(layout(joinpath(DATA, case["alto"]), "</Description>"), layout(joinpath(DATA, case["page_xml"]), "</Metadata>"))
+			@test [[(l.id, l.baseline, l.boundary) for l in read_page(file).lines] for file in (alto, pagexml)] == [lines, lines]
 		end
 	end
 end

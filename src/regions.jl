@@ -289,19 +289,12 @@ function segment_maps(model::Segmenter, maps::Array{Float32, 3}, scaled::Matrix{
 end
 
 """
-	write_alto(path, segmentation) -> path
-
-Writes the lines and regions of `segmentation` (as `segment` finds them) to an ALTO 4 file at `path`, laid out as
-Kraken 7 lays out the ALTO of a segmentation: the kinds of lines and regions as tags, the reading order of the lines,
-then each line in that order with its box, baseline and outline, inside the TextBlock of its first region, the lines
-outside regions in TextBlocks of their own, and last the regions that hold no line. `read_page` reads the file back.
+The entities of Kraken's serializer for `s`, in order: a region (index > 0) with the lines it holds, or a line outside
+regions (index < 0). A line goes where the previous one went unless its first region is not the previous line's, so a
+line outside regions sends the lines after it out of their region too, until one starts another region; the regions
+without lines come last.
 """
-function write_alto(path::AbstractString, s::Segmentation)
-	typology = sort(unique(vcat([("type", k) for k in s.kinds], [("type", r.kind) for r in s.regions])))
-	tag(kind) = "TYPE_$(findfirst(==(("type", kind)), typology))"
-	# Kraken's entities: a region (index > 0) with the lines it holds, or a line outside regions (index < 0). A line goes
-	# where the previous one went unless its first region is not the previous line's, so a line outside regions sends the
-	# lines after it out of their region too, until one starts another region.
+function kraken_entities(s::Segmentation)
 	entities = Tuple{Int, Vector{Int}}[]
 	used = falses(length(s.regions))
 	current = 0
@@ -319,6 +312,20 @@ function write_alto(path::AbstractString, s::Segmentation)
 		current == 0 ? push!(entities, (-k, Int[])) : push!(entities[current][2], k)
 	end
 	append!(entities, [(r, Int[]) for r in eachindex(s.regions) if !used[r]])
+end
+
+"""
+	write_alto(path, segmentation) -> path
+
+Writes the lines and regions of `segmentation` (as `segment` finds them) to an ALTO 4 file at `path`, laid out as
+Kraken 7 lays out the ALTO of a segmentation: the kinds of lines and regions as tags, the reading order of the lines,
+then each line in that order with its box, baseline and outline, inside the TextBlock of its first region, the lines
+outside regions in TextBlocks of their own, and last the regions that hold no line. `read_page` reads the file back.
+"""
+function write_alto(path::AbstractString, s::Segmentation)
+	typology = sort(unique(vcat([("type", k) for k in s.kinds], [("type", r.kind) for r in s.regions])))
+	tag(kind) = "TYPE_$(findfirst(==(("type", kind)), typology))"
+	entities = kraken_entities(s)
 
 	io = IOBuffer()
 	print(io, """
@@ -385,7 +392,68 @@ function write_alto(path::AbstractString, s::Segmentation)
 		end
 	end
 	in_loose_block && println(io, "                </TextBlock>")
-	println(io, "            </PrintSpace>\n        </Page>\n    </Layout>\n</alto>")
+	print(io, "            </PrintSpace>\n        </Page>\n    </Layout>\n</alto>")
+	write(path, take!(io))
+	path
+end
+
+"""The points (x, y) as PAGE writes them: `x0,y0 x1,y1 ...`."""
+page_points_text(points) = join(("$(p[1]),$(p[2])" for p in points), " ")
+
+"""
+	write_page_xml(path, segmentation) -> path
+
+Writes the lines and regions of `segmentation` (as `segment` finds them) to a PAGE file (2019 schema) at `path`, laid
+out as Kraken 7 lays out the PAGE file of a segmentation: each line in reading order with its outline and baseline,
+inside the TextRegion of its first region, the lines outside regions in TextRegions that cover the page, and last the
+regions that hold no line; the kind of each line and region in its `custom` attribute (`type {type:text;}`). A line
+without an outline is left out, as Kraken leaves it out. `read_page` reads the file back.
+"""
+function write_page_xml(path::AbstractString, s::Segmentation)
+	custom(kind) = "type {type:$(xml_escape(kind));}"
+	date = Dates.format(Dates.now(Dates.UTC), Dates.dateformat"yyyy-mm-ddTHH:MM:SS.sss") * "+00:00"
+	io = IOBuffer()
+	print(io, """
+	<?xml version="1.0" encoding="UTF-8"?>
+	<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+	    <Metadata>
+	        <Creator>MedievalATR.jl $(pkgversion(@__MODULE__))</Creator>
+	        <Created>$(date)</Created>
+	        <LastChange>$(date)</LastChange>
+	    </Metadata>
+	    <Page imageFilename="$(xml_escape(s.image))" imageWidth="$(s.width)" imageHeight="$(s.height)">
+	""")
+	function write_line(k)
+		line = s.lines[k]
+		(line.boundary === nothing || isempty(line.boundary)) && return
+		println(io, "            <TextLine id=\"$(xml_escape(line.id))\" custom=\"$(custom(s.kinds[k]))\">")
+		println(io, "                <Coords points=\"$(page_points_text(line.boundary))\"/>")
+		isempty(line.baseline) || println(io, "                <Baseline points=\"$(page_points_text(line.baseline))\"/>")
+		isempty(line.text) || println(io, "                <TextEquiv><Unicode>$(xml_escape(line.text))</Unicode></TextEquiv>")
+		println(io, "            </TextLine>")
+	end
+	entities = kraken_entities(s)
+	in_loose_region = false
+	for (e, (index, lines)) in enumerate(entities)
+		if index > 0
+			in_loose_region && println(io, "        </TextRegion>")
+			in_loose_region = false
+			region = s.regions[index]
+			println(io, "        <TextRegion id=\"$(xml_escape(region.id))\" custom=\"$(custom(region.kind))\">")
+			println(io, "            <Coords points=\"", isempty(region.boundary) ? "0,0 0,0 0,0" : page_points_text(region.boundary), "\"/>")
+			foreach(write_line, lines)
+			println(io, "        </TextRegion>")
+		else
+			if !in_loose_region
+				println(io, "        <TextRegion id=\"textblock_$(e)\">")
+				println(io, "            <Coords points=\"0,0 0,$(s.height) $(s.width),$(s.height) $(s.width),0\"/>")
+			end
+			in_loose_region = true
+			write_line(-index)
+		end
+	end
+	in_loose_region && println(io, "        </TextRegion>")
+	print(io, "    </Page>\n</PcGts>")
 	write(path, take!(io))
 	path
 end

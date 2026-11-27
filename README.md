@@ -4,7 +4,7 @@ Automated text recognition of medieval manuscripts in Julia. MedievalATR reads t
 [Kraken](https://kraken.re) saves (`.mlmodel`), and does what Kraken 7.2 does with them:
 
 - **Segmentation:** with blla, Kraken's default segmentation model, it finds the text lines and regions of a page
-  image, the baseline and outline of each line, and their reading order, and writes them to an ALTO file.
+  image, the baseline and outline of each line, and their reading order, and writes them to an ALTO or PAGE file.
 - **Recognition:** with a recognition model such as CATMuS Medieval, it cuts out each line along its baseline and
   outline, prepares the line image for the network, runs the network and decodes the text.
 
@@ -39,7 +39,7 @@ A page without an ALTO or PAGE file is segmented first:
 segmenter = load_segmenter(:blla)            # Kraken's default segmentation model, downloaded the first time
 image = read_image("folio_12r.jpg")
 s = segment(segmenter, image; path = "folio_12r.jpg")
-write_alto("folio_12r.xml", s)               # the lines and regions, as Kraken writes them
+write_alto("folio_12r.alto.xml", s)          # the lines and regions, as Kraken writes them (or write_page_xml)
 for p in recognize(model, image, s.lines)
     println(p.id, ": ", p.text)
 end
@@ -53,6 +53,7 @@ end
 | `load_segmenter(name)`, `load_segmenter(path)` | A Kraken segmentation model, by name (`:blla`) or from its `.mlmodel` file |
 | `segment(segmenter, image)` | The lines and regions of a page image, each line with its baseline and outline, in reading order |
 | `write_alto(path, segmentation)` | The lines and regions of a segmentation, written to an ALTO file as Kraken writes it |
+| `write_page_xml(path, segmentation)` | The same, written to a PAGE file as Kraken writes it |
 | `read_page(path)` | The image and text lines of an ALTO or PAGE file, each with its baseline, polygon and transcription |
 | `read_image(path)` | A page image as bytes (bands, width, height) |
 | `recognize(model, page)`, `recognize(model, image, lines)` | The text of each line, as `Prediction`s with the line's id, the text and its characters |

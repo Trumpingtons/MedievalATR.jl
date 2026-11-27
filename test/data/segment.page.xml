@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd">
+    <Metadata>
+        <Creator>kraken 7.2</Creator>
+        <Created>2026-11-27T23:28:29.469340+00:00</Created>
+        <LastChange>2026-11-27T23:28:29.469340+00:00</LastChange>
+    </Metadata>
+    <Page imageFilename="segment_page.png" imageWidth="1000" imageHeight="700">
+        <TextRegion id="region_1" custom="type {type:text;}">
+<Coords points="44,82 458,82 458,448 42,448 44,82"/>
+<TextLine id="line_1" custom="type {type:default;}">
+                <Coords points="418,84 398,84 378,84 358,84 338,84 318,84 298,84 278,84 258,84 238,84 218,84 198,84 178,84 158,84 138,84 118,84 98,84 78,84 58,84 60,122 60,136 436,128 438,118 432,84 418,84"/>
+                <Baseline points="60,122 438,118"/>
+                
+            </TextLine>
+<TextLine id="line_2" custom="type {type:default;}">
+                <Coords points="60,182 60,196 436,188 438,178 432,136 58,142 60,182"/>
+                <Baseline points="60,182 438,178"/>
+                
+            </TextLine>
+<TextLine id="line_3" custom="type {type:default;}">
+                <Coords points="60,242 60,256 436,248 438,238 432,196 58,204 60,242"/>
+                <Baseline points="60,242 438,238"/>
+                
+            </TextLine>
+<TextLine id="line_4" custom="type {type:default;}">
+                <Coords points="60,302 60,316 436,310 438,298 432,260 58,266 60,302"/>
+                <Baseline points="60,302 438,298"/>
+                
+            </TextLine>
+<TextLine id="line_5" custom="type {type:default;}">
+                <Coords points="60,362 60,374 436,374 438,358 432,318 58,320 60,362"/>
+                <Baseline points="60,362 438,358"/>
+                
+            </TextLine>
+<TextLine id="line_6" custom="type {type:default;}">
+                <Coords points="60,422 60,438 436,436 438,418 434,378 58,378 60,422"/>
+                <Baseline points="60,422 438,418"/>
+                
+            </TextLine>        </TextRegion>
+        <TextRegion id="region_2" custom="type {type:text;}">
+<Coords points="524,102 958,102 958,468 522,468 524,102"/>
+<TextLine id="line_7" custom="type {type:default;}">
+                <Coords points="920,104 900,104 880,104 860,104 840,104 820,104 800,104 780,104 760,104 740,104 720,104 700,104 680,104 660,104 640,104 620,104 600,104 580,104 560,104 540,104 542,144 542,158 936,150 938,140 934,104 920,104"/>
+                <Baseline points="542,144 762,134 938,140"/>
+                
+            </TextLine>
+<TextLine id="line_8" custom="type {type:default;}">
+                <Coords points="542,204 542,218 936,212 938,200 932,160 540,164 542,204"/>
+                <Baseline points="542,204 762,194 938,200"/>
+                
+            </TextLine>
+<TextLine id="line_9" custom="type {type:default;}">
+                <Coords points="542,264 542,276 936,270 938,260 934,222 820,212 818,212 540,226 542,264"/>
+                <Baseline points="542,264 762,254 938,260"/>
+                
+            </TextLine>
+<TextLine id="line_10" custom="type {type:default;}">
+                <Coords points="542,324 542,338 936,330 938,320 934,282 838,272 836,272 540,284 542,324"/>
+                <Baseline points="542,324 762,314 938,320"/>
+                
+            </TextLine>
+<TextLine id="line_11" custom="type {type:default;}">
+                <Coords points="542,384 542,398 936,392 938,380 932,334 540,342 542,384"/>
+                <Baseline points="542,384 762,374 938,380"/>
+                
+            </TextLine>
+<TextLine id="line_12" custom="type {type:default;}">
+                <Coords points="542,444 542,458 938,458 938,440 932,400 540,404 542,444"/>
+                <Baseline points="542,444 762,434 938,440"/>
+                
+            </TextLine>        </TextRegion>
+        <TextRegion id="textblock_3">
+            <Coords points="0,0 0,700 1000,700 1000,0"/>
+            
+<TextLine id="line_13" custom="type {type:default;}">
+                <Coords points="120,642 120,652 874,654 878,636 872,596 118,596 120,642"/>
+                <Baseline points="120,642 878,636"/>
+                
+            </TextLine>
+        </TextRegion>
+    </Page>
+</PcGts>
