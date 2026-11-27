@@ -167,3 +167,15 @@ function read_page(path::AbstractString)
 	name == "PcGts" && return read_page_xml(root, dirname(path))
 	throw(ArgumentError("$(path) is neither an ALTO nor a PAGE file (its root element is $(name))."))
 end
+
+"""The text `s` escaped for an XML attribute or element."""
+xml_escape(s::AbstractString) = replace(s, "&" => "&amp;", "<" => "&lt;", ">" => "&gt;", "\"" => "&quot;")
+
+"""The points (x, y) flattened as ALTO writes them: `x0 y0 x1 y1 ...`."""
+alto_points_text(points) = join((string(v) for p in points for v in p), " ")
+
+"""The box of the points (x, y) as the ALTO attributes HPOS, VPOS, WIDTH and HEIGHT, after a space."""
+function alto_box(points)
+	xs, ys = first.(points), last.(points)
+	" HPOS=\"$(minimum(xs))\" VPOS=\"$(minimum(ys))\" WIDTH=\"$(maximum(xs) - minimum(xs))\" HEIGHT=\"$(maximum(ys) - minimum(ys))\""
+end

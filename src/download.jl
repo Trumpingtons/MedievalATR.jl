@@ -14,12 +14,17 @@ const MODELS = Dict(
 		"https://zenodo.org/api/records/21488839/files/catmus-medieval-1.6.0.mlmodel/content",
 		"catmus-medieval-1.6.0.mlmodel",
 		"227d10f15a936c2492105b7796a6152647c742f248af117856f417008eadbc9c"),
+	# blla, Kraken's default segmentation model, as Kraken 7.2 ships it (Apache 2.0)
+	:blla => PublishedModel(
+		"https://raw.githubusercontent.com/mittagessen/kraken/7.2/kraken/blla.mlmodel",
+		"blla.mlmodel",
+		"a3ccc7309fe8df62d1cbd372706edc73db6a2a32806e3758522ed8528a734073"),
 )
 
 """
 	model_path(name::Symbol) -> String
 
-The path of the published model `name` (`:catmus_medieval`), downloaded the first time it is asked for into
+The path of the published model `name` (`:catmus_medieval` or `:blla`), downloaded the first time it is asked for into
 MedievalATR's scratch space and checked against its SHA-256 checksum.
 """
 function model_path(name::Symbol)
@@ -44,3 +49,10 @@ end
 The published model `name` (`:catmus_medieval`), downloaded the first time.
 """
 load_model(name::Symbol) = load_model(model_path(name))
+
+"""
+	load_segmenter(name::Symbol) -> Segmenter
+
+The published segmentation model `name` (`:blla`, Kraken's default), downloaded the first time.
+"""
+load_segmenter(name::Symbol) = load_segmenter(model_path(name))

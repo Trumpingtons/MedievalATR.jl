@@ -61,7 +61,8 @@ function rotate(patch::Array{UInt8, 3}, angle::Float64)
 end
 
 """
-scikit-image's `approximate_polygon` (Douglas-Peucker) of `coords` (x, y points) with `tolerance`.
+scikit-image's `approximate_polygon` (Douglas-Peucker) of `coords` with `tolerance`, its trigonometry the C
+library's, as NumPy's.
 """
 function approximate_polygon(coords::Vector{NTuple{2, Float64}}, tolerance::Float64)
 	n = length(coords)
@@ -74,13 +75,14 @@ function approximate_polygon(coords::Vector{NTuple{2, Float64}}, tolerance::Floa
 		r0, c0 = coords[start]
 		r1, c1 = coords[stop]
 		dr, dc = r1 - r0, c1 - c0
-		segment_angle = -atan(dr, dc)
-		segment_dist = c0 * sin(segment_angle) + r0 * cos(segment_angle)
+		segment_angle = -libm_atan2(dr, dc)
+		sine, cosine = libm_sin(segment_angle), libm_cos(segment_angle)
+		segment_dist = c0 * sine + r0 * cosine
 		for k in start + 1:stop - 1
 			r, c = coords[k]
 			dr0, dc0, dr1, dc1 = r - r0, c - c0, r - r1, c - c1
 			if dr0 * dr + dc0 * dc > 0 && -dr1 * dr - dc1 * dc > 0
-				dists[k] = abs(r * cos(segment_angle) + c * sin(segment_angle) - segment_dist)
+				dists[k] = abs(r * cosine + c * sine - segment_dist)
 			else
 				dists[k] = min(sqrt(dc0^2 + dr0^2), sqrt(dc1^2 + dr1^2))
 			end

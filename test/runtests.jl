@@ -1,6 +1,8 @@
-# MedievalATR's tests, against values computed by Pillow 13 and Kraken 7.2 with CATMuS Medieval (test/data, made by
-# fixtures.py from the Kraken reference): polygon masks, Lanczos scaling, ALTO and PAGE reading, and the lines of a small
-# drawn page as Kraken cuts, prepares and reads them. The last needs the model, downloaded from Zenodo the first time.
+# MedievalATR's tests, against values computed by Pillow 13 and Kraken 7.2 with CATMuS Medieval and blla (test/data,
+# made by fixtures.py from the Kraken reference): polygon masks, Lanczos scaling, ALTO and PAGE reading, the lines of a
+# small drawn page as Kraken cuts, prepares and reads them, blla's network on that page, and the lines and regions
+# Kraken finds on drawn maps, which stand in for the network's, with their ALTO. The models are downloaded the first
+# time, CATMuS Medieval from Zenodo and blla from Kraken's repository.
 using MedievalATR, Test, JSON
 
 const DATA = joinpath(@__DIR__, "data")
@@ -60,5 +62,42 @@ end
 		end
 		lines = [TextLine(l["id"], points(l["baseline"]), points(l["boundary"]), "") for l in FIXTURES["lines"]]
 		@test [p.text for p in recognize(model, page, lines)] == [l["text"] for l in FIXTURES["lines"]]
+	end
+
+	@testset "blla's network on a drawn page as PyTorch computes it with one thread" begin
+		model = load_segmenter(:blla)
+		network = FIXTURES["network"]
+		input, _ = MedievalATR.segmentation_input(model, read_image(joinpath(DATA, FIXTURES["page"])))
+		output = MedievalATR.network_output(model, input)
+		classes, rows, cols = network["size"]
+		@test size(output) == (cols, rows, classes)
+		got = [output[c + 1, r + 1, k] for k in 1:classes, r in network["rows"], c in network["cols"]]
+		expected = [Float32(network["logits"][k][i][j]) for k in 1:classes, i in eachindex(network["rows"]), j in eachindex(network["cols"])]
+		# the convolutions and LSTMs add up in another order than PyTorch's, by some thousandths at most
+		@test maximum(abs.(got .- expected)) < 0.01
+	end
+
+	@testset "lines and regions on drawn maps, and their ALTO, as Kraken finds and writes them" begin
+		model = load_segmenter(:blla)
+		case = FIXTURES["segment"]
+		stacked = read_image(joinpath(DATA, case["maps"]))[1, :, :]
+		width, height = size(stacked, 1), size(stacked, 2) ÷ 4
+		maps = cat((Float32.(stacked[:, (k - 1) * height + 1:k * height]) ./ 255f0 for k in 1:4)...; dims = 3)
+		grey = read_image(joinpath(DATA, case["page"]))[1, :, :]
+		s = MedievalATR.segment_maps(model, maps, grey, case["width"], case["height"]; path = case["page"])
+		@test ([(l.baseline, l.boundary) for l in s.lines], s.kinds, [r .- 1 for r in s.line_regions], [(r.kind, r.boundary) for r in s.regions]) ==
+			([(points(l["baseline"]), points(l["boundary"])) for l in case["lines"]], [l["kind"] for l in case["lines"]],
+				[Vector{Int}(l["regions"]) for l in case["lines"]], [(r["kind"], points(r["boundary"])) for r in case["regions"]])
+		# the layout from the tags on (Kraken's description names Kraken), one element to a line, as Kraken's template
+		# closes a TextBlock on the line of its Shape
+		layout(file) = filter(!isempty, strip.(split(replace(split(read(file, String), "</Description>")[2],
+			"</Shape></TextBlock>" => "</Shape>\n</TextBlock>"), '\n')))
+		mktempdir() do dir
+			path = write_alto(joinpath(dir, "page.xml"), s)
+			@test layout(path) == layout(joinpath(DATA, case["alto"]))
+			# Kraken's reader, like read_page, drops a point that repeats the one before it
+			@test [(l.id, l.baseline, l.boundary) for l in read_page(path).lines] ==
+				[(l.id, l.baseline, MedievalATR.adjacent_unique(l.boundary)) for l in s.lines]
+		end
 	end
 end
